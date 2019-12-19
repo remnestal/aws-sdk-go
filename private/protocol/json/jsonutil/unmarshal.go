@@ -3,7 +3,6 @@ package jsonutil
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"reflect"
@@ -12,7 +11,11 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/private/protocol"
+
+	jsoniter "github.com/json-iterator/go"
 )
+
+var jsonpkg = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // UnmarshalJSONError unmarshal's the reader's JSON document into the passed in
 // type. The value to unmarshal the json document into must be a pointer to the
@@ -21,7 +24,7 @@ func UnmarshalJSONError(v interface{}, stream io.Reader) error {
 	var errBuf bytes.Buffer
 	body := io.TeeReader(stream, &errBuf)
 
-	err := json.NewDecoder(body).Decode(v)
+	err := jsonpkg.NewDecoder(body).Decode(v)
 	if err != nil {
 		msg := "failed decoding error message"
 		if err == io.EOF {
@@ -38,7 +41,7 @@ func UnmarshalJSONError(v interface{}, stream io.Reader) error {
 func UnmarshalJSON(v interface{}, stream io.Reader) error {
 	var out interface{}
 
-	err := json.NewDecoder(stream).Decode(&out)
+	err := jsonpkg.NewDecoder(stream).Decode(&out)
 	if err == io.EOF {
 		return nil
 	} else if err != nil {
